@@ -1,4 +1,3 @@
-
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -36,13 +35,14 @@ app.use(express.static('client/dist')); // Assuming your 'client' folder is at t
 // Run the seed functions before starting the server
 const initializeApp = async () => {
   try {
-    // Seed the users and tickets before syncing the database (for dev purposes)
-    if (process.env.NODE_ENV !== 'production') {
+    // Conditionally seed users and tickets based on the environment or a specific flag
+    const shouldSeedData = process.env.SEED_DATA === 'true'; // Check for a SEED_DATA environment variable
+    if (shouldSeedData) {
       await seedUsers(); // Seed the users
       await seedTickets(); // Seed the tickets (if relevant)
     }
 
-    // Sync Sequelize models and start the server (don't force sync in production)
+    // Sync Sequelize models and start the server (don't force sync in production unless needed)
     if (isProduction && !forceDatabaseRefresh) {
       await sequelize.sync();
     } else {
