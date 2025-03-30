@@ -24,7 +24,7 @@
 import { defineConfig } from 'vite';
 
 // Set the target URL based on environment variable or fallback to Render URL
-const target = 'https://authentication-3yrc.onrender.com' // Default to render URL if not set
+const target = 'https://authentication-1-oqwb.onrender.com' // Default to render URL if not set
 
 export default defineConfig({
   server: {
