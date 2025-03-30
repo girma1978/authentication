@@ -22,37 +22,68 @@
 //   });
 // });
 
-
 import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
-import routes from './routes/index.js';
-import { sequelize } from './models/index.js';
+import cors from 'cors';
+import { sequelize } from './models/index.js';  // Ensure your models are correctly imported
+import routes from './routes/index.js';  // Ensure routes are correctly imported
+import { seedUsers } from './seeds/user-seeds.js';  // Import user seed function
+import { seedTickets } from './seeds/ticket-seeds.js';  // Import ticket seed function
 
-// Create an instance of Express
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Set the `forceDatabaseRefresh` flag (set this according to your needs)
-const forceDatabaseRefresh = process.env.FORCE_DB_REFRESH === 'true' ? true : false; // Example of setting based on environment variable
+// Set the `forceDatabaseRefresh` flag based on environment variables
+const forceDatabaseRefresh = process.env.FORCE_DB_REFRESH === 'true' ? true : false;
 
-// Middleware
-import cors from 'cors';
-app.use(cors());
-app.use(express.json());
+// Detect the environment (production or development)
+const isProduction = process.env.NODE_ENV === 'production';
 
-// Static file serving for client-side assets (for production)
-app.use(express.static('../client/dist'));
+// CORS middleware configuration (with dynamic origin based on environment)
+const corsOptions = {
+  origin: isProduction
+    ? 'https://authentication-3yrc.onrender.com' // Production URL when app is deployed
+    : ['http://localhost:3000', 'http://localhost:5173'], // Local development URLs
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
+};
 
-// API Routes
+app.use(cors(corsOptions)); // Use CORS middleware
+app.use(express.json()); // Parse JSON data in requests
+
+// Serve static files for client-side assets (ensure path is correct)
+app.use(express.static('../client/dist'));  // Serve the static files from the build folder
+
+// Run the seed functions before starting the server
+const initializeApp = async () => {
+  try {
+    // Seed the users and tickets before syncing the database
+    await seedUsers();  // Seed the users
+    await seedTickets(); // Seed the tickets (if relevant)
+
+    // Sync Sequelize models and start the server
+    await sequelize.sync({ force: forceDatabaseRefresh });
+
+    // Start the Express server
+    app.listen(PORT, () => {
+      console.log(`Server is listening on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Error during app initialization:', error);
+  }
+};
+
+// Redirect to the production site if localhost is unavailable (for production mode)
+if (isProduction) {
+  app.get('*', (_req, res) => {
+    res.redirect('https://authentication-3yrc.onrender.com'); // Redirect to production site if running in production
+  });
+}
+
+// Use API routes
 app.use(routes);
 
-// Sequelize sync with the database
-sequelize.sync({ force: forceDatabaseRefresh }).then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`);
-  });
-}).catch((err) => {
-  console.error("Error syncing the database:", err);
-});
+// Initialize the application and start the seeding process
+initializeApp();
