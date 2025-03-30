@@ -27,14 +27,14 @@ export default defineConfig({
     open: true,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:3001',
+        target: process.env.VITE_API_URL || 'https://authentication-1-oqwb.onrender.com', // Render URL
         changeOrigin: true,
-        secure: false,
+        secure: true, // Use true for HTTPS
       },
       '/auth': {
-        target: process.env.VITE_API_URL || 'http://localhost:3001',
+        target: process.env.VITE_API_URL || 'https://authentication-1-oqwb.onrender.com', // Render URL
         changeOrigin: true,
-        secure: false
+        secure: true, // Use true for HTTPS
       },
     },
   },
