@@ -21,7 +21,6 @@
 //     console.log(`Server is listening on port ${PORT}`);
 //   });
 // });
-
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -35,7 +34,7 @@ import { seedTickets } from './seeds/ticket-seeds.js';  // Import ticket seed fu
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Set the `forceDatabaseRefresh` flag based on environment variables
+// Set the `forceDatabaseRefresh` flag based on environment variables (careful with force in production)
 const forceDatabaseRefresh = process.env.FORCE_DB_REFRESH === 'true' ? true : false;
 
 // Detect the environment (production or development)
@@ -54,17 +53,23 @@ app.use(cors(corsOptions)); // Use CORS middleware
 app.use(express.json()); // Parse JSON data in requests
 
 // Serve static files for client-side assets (ensure path is correct)
-app.use(express.static('../client/dist'));  // Serve the static files from the build folder
+app.use(express.static('client/dist'));  // Assuming your 'client' folder is at the root
 
 // Run the seed functions before starting the server
 const initializeApp = async () => {
   try {
-    // Seed the users and tickets before syncing the database
-    await seedUsers();  // Seed the users
-    await seedTickets(); // Seed the tickets (if relevant)
+    // Seed the users and tickets before syncing the database (for dev purposes)
+    if (process.env.NODE_ENV !== 'production') {
+      await seedUsers();  // Seed the users
+      await seedTickets(); // Seed the tickets (if relevant)
+    }
 
-    // Sync Sequelize models and start the server
-    await sequelize.sync({ force: forceDatabaseRefresh });
+    // Sync Sequelize models and start the server (don't force sync in production)
+    if (isProduction && !forceDatabaseRefresh) {
+      await sequelize.sync();
+    } else {
+      await sequelize.sync({ force: forceDatabaseRefresh });
+    }
 
     // Start the Express server
     app.listen(PORT, () => {
@@ -75,15 +80,16 @@ const initializeApp = async () => {
   }
 };
 
-// Redirect to the production site if localhost is unavailable (for production mode)
+// Redirect client-side routes to the production URL if in production
 if (isProduction) {
   app.get('*', (_req, res) => {
-    res.redirect('https://authentication-3yrc.onrender.com'); // Redirect to production site if running in production
+    res.sendFile('client/dist/index.html');  // Serve your front-end entry point in production
   });
 }
 
 // Use API routes
 app.use(routes);
+
 
 // Initialize the application and start the seeding process
 initializeApp();
