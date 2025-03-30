@@ -24,7 +24,7 @@
 import { defineConfig } from 'vite';
 
 // Set the target URL based on environment variable or fallback to Render URL
-const target = process.env.VITE_API_URL || '' // Default to render URL if not set
+const target = process.env.VITE_API_URL || 'http://localhost:3001' // Default to render URL if not set
 
 export default defineConfig({
   server: {

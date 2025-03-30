@@ -39,5 +39,5 @@ Before starting, ensure that you have the following installed:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/kanban-board-with-auth.git
-   cd kanban-board-with-auth
+git clone https://github.com/girma1978/authentication.git
+cd authentication
