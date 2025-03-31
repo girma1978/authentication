@@ -1,12 +1,19 @@
+
+
 // import dotenv from 'dotenv';
 // dotenv.config();
-
 // import express from 'express';
 // import cors from 'cors';
-// import { sequelize } from './models/index.js'; // Ensure your models are correctly imported
-// import routes from './routes/index.js'; // Ensure routes are correctly imported
-// import { seedUsers } from './seeds/user-seeds.js'; // Import user seed function
-// import { seedTickets } from './seeds/ticket-seeds.js'; // Import ticket seed function
+// import path from 'path';
+// import { fileURLToPath } from 'url';
+// import { sequelize } from './models/index.js';
+// import routes from './routes/index.js';
+// import { seedUsers } from './seeds/user-seeds.js';
+// import { seedTickets } from './seeds/ticket-seeds.js';
+
+// // Setup __dirname equivalent for ES modules
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 // const app = express();
 // const PORT = process.env.PORT || 3001;
@@ -30,7 +37,17 @@
 // app.use(express.json()); // Parse JSON data in requests
 
 // // Serve static files for client-side assets (ensure path is correct)
-// app.use(express.static('client/dist')); // Assuming your 'client' folder is at the root
+// app.use(express.static(path.join(__dirname, 'client/dist')));
+
+// // IMPORTANT: Define API routes BEFORE the catch-all route
+// app.use(routes);
+
+// // AFTER routes, add the catch-all for client-side routing in production
+// if (isProduction) {
+//   app.get('*', (_req, res) => {
+//     res.sendFile(path.join(__dirname, 'client/dist/index.html'));
+//   });
+// }
 
 // // Run the seed functions before starting the server
 // const initializeApp = async () => {
@@ -41,14 +58,14 @@
 //       await seedUsers(); // Seed the users
 //       await seedTickets(); // Seed the tickets (if relevant)
 //     }
-
+    
 //     // Sync Sequelize models and start the server (don't force sync in production unless needed)
 //     if (isProduction && !forceDatabaseRefresh) {
 //       await sequelize.sync();
 //     } else {
 //       await sequelize.sync({ force: forceDatabaseRefresh });
 //     }
-
+    
 //     // Start the Express server
 //     app.listen(PORT, () => {
 //       console.log(`Server is listening on port ${PORT}`);
@@ -58,18 +75,13 @@
 //   }
 // };
 
-// // Redirect client-side routes to the production URL if in production
-// if (isProduction) {
-//   app.get('*', (_req, res) => {
-//     res.sendFile('client/dist/index.html');  // Serve your front-end entry point in production
-//   });
-// }
-
-// // Use API routes
-// app.use(routes);
-
 // // Initialize the application and start the seeding process
 // initializeApp();
+
+
+
+
+
 
 
 import dotenv from 'dotenv';
@@ -105,8 +117,11 @@ const corsOptions = {
   credentials: true,
 };
 
-app.use(cors(corsOptions)); // Use CORS middleware
-app.use(express.json()); // Parse JSON data in requests
+// Use CORS middleware
+app.use(cors(corsOptions)); // This enables CORS for all routes
+
+// Parse JSON data in requests
+app.use(express.json());
 
 // Serve static files for client-side assets (ensure path is correct)
 app.use(express.static(path.join(__dirname, 'client/dist')));
